@@ -1,0 +1,8 @@
+{
+  "name": "🥑 App Lília Personal Diet",
+  "description": "Seu organizador de estilo de vida e hábitos nutricionais com mapeamento comportamental, suporte multimodal para refeições e receitas inteligentes.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
