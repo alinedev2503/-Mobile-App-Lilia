@@ -135,7 +135,8 @@ fun LiliaAppNavHost(
                             activeMealTypeToScan = mealType
                             viewModel.triggerPlateAnalysis(mealType)
                         },
-                        onNavigateToSettings = { navController.navigate(NavRoutes.PROFILE) }
+                        onNavigateToSettings = { navController.navigate(NavRoutes.PROFILE) },
+                        onNavigateToWeb3 = { navController.navigate(NavRoutes.WEB3_REWARDS) }
                     )
                 }
 
@@ -163,11 +164,19 @@ fun LiliaAppNavHost(
                         onNavigateToTerms = { navController.navigate(NavRoutes.TERMS) },
                         onNavigateToPrivacy = { navController.navigate(NavRoutes.PRIVACY) },
                         onNavigateToPremium = { navController.navigate(NavRoutes.PREMIUM) },
+                        onNavigateToWeb3Rewards = { navController.navigate(NavRoutes.WEB3_REWARDS) },
                         onLogout = {
                             navController.navigate(NavRoutes.LOGIN) {
                                 popUpTo(0) { inclusive = true }
                             }
                         }
+                    )
+                }
+
+                composable(NavRoutes.WEB3_REWARDS) {
+                    com.example.ui.screens.web3.Web3RewardsScreen(
+                        viewModel = viewModel,
+                        onNavigateBack = { navController.popBackStack() }
                     )
                 }
 

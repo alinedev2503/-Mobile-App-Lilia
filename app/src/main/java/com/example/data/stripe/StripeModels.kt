@@ -21,7 +21,7 @@ object LiliaPlanCatalog {
     val PLAN_START = LiliaPlan(
         id = "plan_start_7d",
         stripeProductId = "prod_lilia_start_7d",
-        stripePriceId = "price_start_1990",
+        stripePriceId = "price_1UFgw2E3bAgRQ7BQV9hDRrMK",
         title = "Plano Start (7 Dias)",
         subtitle = "Experimentação rápida & foco",
         priceFormatted = "R$ 19,90",
@@ -43,7 +43,7 @@ object LiliaPlanCatalog {
     val PLAN_RESET = LiliaPlan(
         id = "plan_reset_15d",
         stripeProductId = "prod_lilia_reset_15d",
-        stripePriceId = "price_reset_2990",
+        stripePriceId = "price_1UFgw2E3bAgRQ7BQ4bzTlJUF",
         title = "Desafio Reset (15 Dias)",
         subtitle = "Equilíbrio & criação de hábitos",
         priceFormatted = "R$ 29,90",
@@ -66,7 +66,7 @@ object LiliaPlanCatalog {
     val PLAN_TRANSFORMATION = LiliaPlan(
         id = "plan_transform_30d",
         stripeProductId = "prod_lilia_transform_30d",
-        stripePriceId = "price_transform_3990",
+        stripePriceId = "price_1UFgw2E3bAgRQ7BQgWTnnX0p",
         title = "Transformação 360° (30 Dias)",
         subtitle = "O plano completo definitivo",
         priceFormatted = "R$ 39,90",

@@ -34,6 +34,11 @@ import androidx.compose.material.icons.filled.Scale
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.WorkspacePremium
+import androidx.compose.material.icons.filled.DirectionsRun
+import androidx.compose.material.icons.filled.PictureAsPdf
+import androidx.compose.material.icons.filled.Sync
+import androidx.compose.ui.platform.LocalContext
+import com.example.data.export.NutritionReportExporter
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -84,9 +89,12 @@ fun ProfileScreen(
     onNavigateToTerms: () -> Unit,
     onNavigateToPrivacy: () -> Unit,
     onNavigateToPremium: () -> Unit,
+    onNavigateToWeb3Rewards: () -> Unit,
     onLogout: () -> Unit
 ) {
+    val context = LocalContext.current
     val profile by viewModel.userProfile.collectAsState()
+    val walletState by viewModel.web3WalletState.collectAsState()
 
     var showEditGoalDialog by remember { mutableStateOf(false) }
     var showEditPrefsDialog by remember { mutableStateOf(false) }
@@ -500,6 +508,36 @@ fun ProfileScreen(
                         HorizontalDivider(color = Color(0xFFF1F5F9), thickness = 1.dp)
 
                         ProfileModernOptionItem(
+                            icon = Icons.Default.Diamond,
+                            title = "Eat-to-Earn Web3 (${walletState.tokenBalance.toInt()} \$LILIA)",
+                            subtitle = "Recompensas e resgate de benefícios na Polygon PoS",
+                            highlight = true,
+                            onClick = onNavigateToWeb3Rewards
+                        )
+
+                        HorizontalDivider(color = Color(0xFFF1F5F9), thickness = 1.dp)
+
+                        ProfileModernOptionItem(
+                            icon = Icons.Default.PictureAsPdf,
+                            title = "Exportar Relatório em PDF (v1.1)",
+                            onClick = {
+                                viewModel.exportNutritionPdf { generatedPdf ->
+                                    NutritionReportExporter.sharePdf(context, generatedPdf)
+                                }
+                            }
+                        )
+
+                        HorizontalDivider(color = Color(0xFFF1F5F9), thickness = 1.dp)
+
+                        ProfileModernOptionItem(
+                            icon = Icons.Default.DirectionsRun,
+                            title = if (profile.isHealthConnectSynced) "Google Health Connect (Conectado)" else "Conectar Google Health Connect",
+                            onClick = { viewModel.syncWithHealthConnect() }
+                        )
+
+                        HorizontalDivider(color = Color(0xFFF1F5F9), thickness = 1.dp)
+
+                        ProfileModernOptionItem(
                             icon = Icons.Default.Notifications,
                             title = "Notificações",
                             onClick = { viewModel.showToast("Notificações da Lília ativas!") }
@@ -666,6 +704,7 @@ fun ProfileScreen(
 private fun ProfileModernOptionItem(
     icon: ImageVector,
     title: String,
+    subtitle: String? = null,
     highlight: Boolean = false,
     isDestructive: Boolean = false,
     onClick: () -> Unit
@@ -685,7 +724,7 @@ private fun ProfileModernOptionItem(
             Surface(
                 shape = CircleShape,
                 color = when {
-                    highlight -> Color(0xFFFFF8E1)
+                    highlight -> Color(0xFF8247E5).copy(alpha = 0.12f)
                     isDestructive -> Color(0xFFFFEBEE)
                     else -> LiliaMintLight
                 },
@@ -696,7 +735,7 @@ private fun ProfileModernOptionItem(
                         imageVector = icon,
                         contentDescription = title,
                         tint = when {
-                            highlight -> Color(0xFFFFA000)
+                            highlight -> Color(0xFF8247E5)
                             isDestructive -> Color(0xFFD32F2F)
                             else -> LiliaPrimary
                         },
@@ -707,14 +746,26 @@ private fun ProfileModernOptionItem(
 
             Spacer(modifier = Modifier.width(14.dp))
 
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyLarge.copy(
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 15.sp,
-                    color = if (isDestructive) Color(0xFFD32F2F) else MaterialTheme.colorScheme.onSurface
+            Column {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        fontWeight = if (highlight) FontWeight.Bold else FontWeight.Medium,
+                        fontSize = 15.sp,
+                        color = if (isDestructive) Color(0xFFD32F2F) else MaterialTheme.colorScheme.onSurface
+                    )
                 )
-            )
+                if (subtitle != null) {
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = subtitle,
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            fontSize = 12.sp,
+                            color = if (highlight) Color(0xFF8247E5) else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    )
+                }
+            }
         }
 
         Icon(

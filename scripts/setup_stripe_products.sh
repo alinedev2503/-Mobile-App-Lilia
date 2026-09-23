@@ -4,19 +4,16 @@
 # Lília Personal Diet
 # ==============================================================================
 
-# Defina sua chave secreta da Stripe (sk_test_... ou sk_live_...)
-# Exemplo de uso: STRIPE_SECRET_KEY="sk_live_..." ./setup_stripe_products.sh
-
 if [ -z "$STRIPE_SECRET_KEY" ]; then
   echo "⚠️  Por favor, defina a variável STRIPE_SECRET_KEY antes de executar."
   echo "Exemplo: export STRIPE_SECRET_KEY='sk_test_...'"
   exit 1
 fi
 
-echo "🚀 Iniciando criação dos produtos no Stripe..."
+echo "🚀 Iniciando criação dos produtos e preços no Stripe..."
 
 # 1. App Lilia - Plano Start (7 Dias)
-echo "📦 Criando Produto 1: App Lilia - Plano Start (7 Dias)..."
+echo "📦 1. Produto: App Lilia - Plano Start (7 Dias)..."
 curl -s -X POST https://api.stripe.com/v1/products \
   -u "$STRIPE_SECRET_KEY:" \
   -d "id=prod_lilia_start_7d" \
@@ -29,7 +26,6 @@ echo ""
 echo "💰 Criando Preço para o Plano Start (R$ 19,90)..."
 curl -s -X POST https://api.stripe.com/v1/prices \
   -u "$STRIPE_SECRET_KEY:" \
-  -d "id=price_start_1990" \
   -d "product=prod_lilia_start_7d" \
   -d "unit_amount=1990" \
   -d "currency=brl"
@@ -38,7 +34,7 @@ echo ""
 echo "------------------------------------------------------------"
 
 # 2. Desafio Reset (15 Dias)
-echo "📦 Criando Produto 2: Desafio Reset (15 Dias)..."
+echo "📦 2. Produto: Desafio Reset (15 Dias)..."
 curl -s -X POST https://api.stripe.com/v1/products \
   -u "$STRIPE_SECRET_KEY:" \
   -d "id=prod_lilia_reset_15d" \
@@ -51,7 +47,6 @@ echo ""
 echo "💰 Criando Preço para o Desafio Reset (R$ 29,90)..."
 curl -s -X POST https://api.stripe.com/v1/prices \
   -u "$STRIPE_SECRET_KEY:" \
-  -d "id=price_reset_2990" \
   -d "product=prod_lilia_reset_15d" \
   -d "unit_amount=2990" \
   -d "currency=brl"
@@ -60,7 +55,7 @@ echo ""
 echo "------------------------------------------------------------"
 
 # 3. Transformação 360° (30 Dias)
-echo "📦 Criando Produto 3: Transformação 360° (30 Dias)..."
+echo "📦 3. Produto: Transformação 360° (30 Dias)..."
 curl -s -X POST https://api.stripe.com/v1/products \
   -u "$STRIPE_SECRET_KEY:" \
   -d "id=prod_lilia_transform_30d" \
@@ -73,10 +68,9 @@ echo ""
 echo "💰 Criando Preço para a Transformação 360° (R$ 39,90)..."
 curl -s -X POST https://api.stripe.com/v1/prices \
   -u "$STRIPE_SECRET_KEY:" \
-  -d "id=price_transform_3990" \
   -d "product=prod_lilia_transform_30d" \
   -d "unit_amount=3990" \
   -d "currency=brl"
 
 echo ""
-echo "🎉 Todos os 3 produtos e preços foram criados com sucesso no Stripe!"
+echo "🎉 Concluído!"

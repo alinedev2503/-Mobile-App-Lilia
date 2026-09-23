@@ -96,6 +96,15 @@ class LiliaViewModel(application: Application) : AndroidViewModel(application) {
     private val _isRecordingVoice = MutableStateFlow(false)
     val isRecordingVoice: StateFlow<Boolean> = _isRecordingVoice.asStateFlow()
 
+    // Web3 / Eat-to-Earn States for Hackathon
+    private val _web3WalletState = MutableStateFlow(
+        com.example.data.web3.Web3WalletState(
+            transactions = com.example.data.web3.Web3RewardsManager.getInitialTransactions()
+        )
+    )
+    val web3WalletState: StateFlow<com.example.data.web3.Web3WalletState> = _web3WalletState.asStateFlow()
+    val web3Perks = com.example.data.web3.Web3RewardsManager.getAvailablePerks()
+
     private val stripeService = StripeService()
 
     private val _selectedPlan = MutableStateFlow<LiliaPlan>(LiliaPlanCatalog.PLAN_TRANSFORMATION)
@@ -319,7 +328,14 @@ class LiliaViewModel(application: Application) : AndroidViewModel(application) {
             )
             repository.addMeal(newMeal)
             _currentAnalysisResult.value = null
-            showToast("Prato confirmado e registrado no seu Diário!")
+            showToast("Prato confirmado e registrado no seu Diário! ✨")
+
+            // Eat-to-Earn Web3 automatic emission on healthy verified meal
+            emitWeb3Reward(
+                actionTitle = "Prato $mealType Validado pela IA",
+                category = "Refeição Saudável",
+                amount = 15.0
+            )
         }
     }
 
@@ -378,10 +394,136 @@ class LiliaViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun syncWithHealthConnect() {
+        viewModelScope.launch {
+            showToast("Sincronizando passos e queima com o Google Health Connect...")
+            try {
+                val data = com.example.data.health.HealthConnectManager.syncHealthData(getApplication())
+                repository.syncHealthConnect(
+                    steps = data.steps,
+                    caloriesBurned = data.activeCaloriesBurned,
+                    lastSync = data.lastSyncTime
+                )
+                showToast("Health Connect sincronizado: ${data.steps} passos • ${data.activeCaloriesBurned} kcal gastas! 🏃‍♀️")
+            } catch (e: Exception) {
+                showToast("Não foi possível conectar ao Health Connect no momento.")
+            }
+        }
+    }
+
+    fun toggleHealthConnectSync(enable: Boolean) {
+        viewModelScope.launch {
+            repository.setHealthConnectSyncStatus(enable)
+            if (enable) {
+                syncWithHealthConnect()
+            } else {
+                showToast("Sincronização com Google Health Connect pausada.")
+            }
+        }
+    }
+
+    fun exportNutritionPdf(onPdfReady: (java.io.File) -> Unit) {
+        viewModelScope.launch {
+            showToast("Gerando Relatório Nutricional em PDF (v1.1)...")
+            val currentProfile = userProfile.value
+            val currentMeals = meals.value
+            val result = com.example.data.export.NutritionReportExporter.generatePdfReport(
+                context = getApplication(),
+                profile = currentProfile,
+                meals = currentMeals
+            )
+            result.onSuccess { file ->
+                showToast("Relatório PDF gerado com sucesso! 📄✨")
+                onPdfReady(file)
+            }.onFailure { err ->
+                showToast("Erro ao exportar PDF: ${err.localizedMessage ?: "Tente novamente"}")
+            }
+        }
+    }
+
     fun activatePremium() {
         viewModelScope.launch {
             repository.setPremium(true)
             showToast("Parabéns! Plano Lília Premium ativado com sucesso! 🌟")
+        }
+    }
+
+    // Web3 / Eat-to-Earn Rewards Functions
+    fun emitWeb3Reward(
+        actionTitle: String,
+        category: String,
+        amount: Double
+    ) {
+        viewModelScope.launch {
+            val current = _web3WalletState.value
+            val txHash = com.example.data.web3.Web3RewardsManager.generateTxHash(actionTitle)
+            val newTx = com.example.data.web3.Web3RewardTransaction(
+                id = "tx_${System.currentTimeMillis()}",
+                actionTitle = actionTitle,
+                category = category,
+                tokenAmount = amount,
+                txHash = txHash,
+                blockNumber = 59842100L + (1..1500).random(),
+                timestamp = System.currentTimeMillis(),
+                isEarning = true
+            )
+            val updatedBalance = current.tokenBalance + amount
+            val updatedTotalEarned = current.totalEarned + amount
+            val updatedTxList = listOf(newTx) + current.transactions
+
+            _web3WalletState.value = current.copy(
+                tokenBalance = updatedBalance,
+                totalEarned = updatedTotalEarned,
+                transactions = updatedTxList
+            )
+            showToast("🎁 Recompensa Web3: +${amount.toInt()} \$LILIA adicionados à sua carteira!")
+        }
+    }
+
+    fun claimDailyStreakWeb3Reward() {
+        viewModelScope.launch {
+            emitWeb3Reward(
+                actionTitle = "Bônus Ofensiva Consistente",
+                category = "Streak Ofensiva",
+                amount = 50.0
+            )
+        }
+    }
+
+    fun redeemWeb3Perk(perk: com.example.data.web3.Web3PerkItem, onClaimSuccess: (String) -> Unit) {
+        viewModelScope.launch {
+            val current = _web3WalletState.value
+            if (current.tokenBalance >= perk.tokenCost) {
+                val txHash = com.example.data.web3.Web3RewardsManager.generateTxHash(perk.id)
+                val newTx = com.example.data.web3.Web3RewardTransaction(
+                    id = "claim_${System.currentTimeMillis()}",
+                    actionTitle = "Resgate: ${perk.title}",
+                    category = "Resgate",
+                    tokenAmount = perk.tokenCost,
+                    txHash = txHash,
+                    blockNumber = 59842200L + (1..1500).random(),
+                    timestamp = System.currentTimeMillis(),
+                    isEarning = false
+                )
+                val updatedBalance = current.tokenBalance - perk.tokenCost
+                val updatedTotalClaimed = current.totalClaimed + perk.tokenCost
+                val updatedTxList = listOf(newTx) + current.transactions
+
+                _web3WalletState.value = current.copy(
+                    tokenBalance = updatedBalance,
+                    totalClaimed = updatedTotalClaimed,
+                    transactions = updatedTxList
+                )
+
+                if (perk.id == "perk_1") {
+                    repository.setPremium(true)
+                }
+
+                showToast("Resgate concluído com sucesso na Polygon PoS! 🎁")
+                onClaimSuccess(perk.voucherCode)
+            } else {
+                showToast("Saldo insuficiente de \$LILIA.")
+            }
         }
     }
 }

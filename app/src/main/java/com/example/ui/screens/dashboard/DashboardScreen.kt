@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Diamond
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.Restaurant
@@ -94,9 +95,11 @@ fun DashboardScreen(
     onNavigateToRecipes: () -> Unit,
     onNavigateToShoppingList: () -> Unit,
     onTriggerScanMeal: (String) -> Unit,
-    onNavigateToSettings: () -> Unit
+    onNavigateToSettings: () -> Unit,
+    onNavigateToWeb3: () -> Unit = {}
 ) {
     val profile by viewModel.userProfile.collectAsState()
+    val walletState by viewModel.web3WalletState.collectAsState()
     val meals by viewModel.meals.collectAsState()
 
     val totalCalories = meals.sumOf { it.calories }
@@ -158,37 +161,76 @@ fun DashboardScreen(
                         )
                     }
 
-                    // Streak Pill Badge
-                    Surface(
-                        shape = PillShape,
-                        color = LiliaSurfaceContainerLowest,
-                        modifier = Modifier
-                            .shadow(2.dp, shape = PillShape, ambientColor = LiliaPrimary.copy(alpha = 0.05f))
-                            .border(
-                                width = 1.dp,
-                                color = LiliaOutlineVariant.copy(alpha = 0.3f),
-                                shape = PillShape
-                            )
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.LocalFireDepartment,
-                                contentDescription = "Ofensiva",
-                                tint = LiliaPrimary,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(modifier = Modifier.width(5.dp))
-                            Text(
-                                text = "${profile.streakDays} dias de ofensiva",
-                                style = MaterialTheme.typography.labelMedium.copy(
-                                    fontWeight = FontWeight.SemiBold,
-                                    fontSize = 12.sp,
-                                    color = LiliaPrimary
+                        // Web3 Token Badge
+                        Surface(
+                            shape = PillShape,
+                            color = Color(0xFF8247E5).copy(alpha = 0.12f),
+                            modifier = Modifier
+                                .clickable { onNavigateToWeb3() }
+                                .border(
+                                    width = 1.dp,
+                                    color = Color(0xFF8247E5).copy(alpha = 0.35f),
+                                    shape = PillShape
                                 )
-                            )
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Diamond,
+                                    contentDescription = "Eat-to-Earn Web3",
+                                    tint = Color(0xFF8247E5),
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = "${walletState.tokenBalance.toInt()} \$LILIA",
+                                    style = MaterialTheme.typography.labelMedium.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 12.sp,
+                                        color = Color(0xFF8247E5)
+                                    )
+                                )
+                            }
+                        }
+
+                        // Streak Pill Badge
+                        Surface(
+                            shape = PillShape,
+                            color = LiliaSurfaceContainerLowest,
+                            modifier = Modifier
+                                .shadow(2.dp, shape = PillShape, ambientColor = LiliaPrimary.copy(alpha = 0.05f))
+                                .border(
+                                    width = 1.dp,
+                                    color = LiliaOutlineVariant.copy(alpha = 0.3f),
+                                    shape = PillShape
+                                )
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.LocalFireDepartment,
+                                    contentDescription = "Ofensiva",
+                                    tint = LiliaPrimary,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = "${profile.streakDays}d",
+                                    style = MaterialTheme.typography.labelMedium.copy(
+                                        fontWeight = FontWeight.SemiBold,
+                                        fontSize = 12.sp,
+                                        color = LiliaPrimary
+                                    )
+                                )
+                            }
                         }
                     }
                 }

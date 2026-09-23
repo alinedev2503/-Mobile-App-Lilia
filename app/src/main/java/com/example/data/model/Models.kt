@@ -66,7 +66,12 @@ data class UserProfileEntity(
     val activePlanId: String = "free",
     val planName: String = "Gratuito",
     val photosRemaining: Int = 3,
-    val planExpiresAt: Long = 0L
+    val planExpiresAt: Long = 0L,
+    val isHealthConnectSynced: Boolean = true,
+    val dailySteps: Int = 8450,
+    val stepsGoal: Int = 10000,
+    val activeCaloriesBurned: Int = 420,
+    val healthConnectLastSync: String = "Hoje, 11:30"
 )
 
 data class RecipeItem(

@@ -82,11 +82,18 @@ import com.example.ui.theme.PillShape
 import com.example.ui.viewmodel.LiliaViewModel
 import java.util.Locale
 
+import androidx.compose.material.icons.filled.DirectionsRun
+import androidx.compose.material.icons.filled.PictureAsPdf
+import androidx.compose.material.icons.filled.Sync
+import androidx.compose.ui.platform.LocalContext
+import com.example.data.export.NutritionReportExporter
+
 @Composable
 fun InsightsScreen(
     viewModel: LiliaViewModel,
     onNavigateToSettings: () -> Unit
 ) {
+    val context = LocalContext.current
     val profile by viewModel.userProfile.collectAsState()
     var showWeightDialog by remember { mutableStateOf(false) }
     var selectedPeriodIndex by remember { mutableIntStateOf(0) }
@@ -109,7 +116,7 @@ fun InsightsScreen(
             contentPadding = PaddingValues(top = 12.dp, bottom = 28.dp),
             verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
-            // 1. Header: Title & Period Selector
+            // 1. Header: Title & Period Selector + PDF Export Button
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -166,6 +173,267 @@ fun InsightsScreen(
                                 tint = LiliaPrimary,
                                 modifier = Modifier.size(16.dp)
                             )
+                        }
+                    }
+                }
+            }
+
+            // 1.5. PDF Report Export Action Banner
+            item {
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .shadow(3.dp, shape = RoundedCornerShape(16.dp), ambientColor = LiliaPrimary.copy(alpha = 0.05f))
+                        .border(1.dp, LiliaOutlineVariant.copy(alpha = 0.2f), RoundedCornerShape(16.dp)),
+                    shape = RoundedCornerShape(16.dp),
+                    color = LiliaMintLight
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            modifier = Modifier.weight(1f),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Surface(
+                                shape = CircleShape,
+                                color = LiliaPrimary,
+                                modifier = Modifier.size(40.dp)
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        imageVector = Icons.Default.PictureAsPdf,
+                                        contentDescription = "PDF Report",
+                                        tint = LiliaOnPrimary,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column {
+                                Text(
+                                    text = "Relatório Nutricional em PDF (v1.1)",
+                                    style = MaterialTheme.typography.titleMedium.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 14.sp,
+                                        color = LiliaPrimary
+                                    )
+                                )
+                                Text(
+                                    text = "Exporte gráficos, fotos e histórico clínico para seu nutricionista",
+                                    style = MaterialTheme.typography.bodySmall.copy(
+                                        fontSize = 11.sp,
+                                        color = LiliaSecondary
+                                    )
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Button(
+                            onClick = {
+                                viewModel.exportNutritionPdf { generatedPdf ->
+                                    NutritionReportExporter.sharePdf(context, generatedPdf)
+                                }
+                            },
+                            shape = PillShape,
+                            colors = ButtonDefaults.buttonColors(containerColor = LiliaPrimary),
+                            modifier = Modifier.testTag("export_pdf_button")
+                        ) {
+                            Text(
+                                "Exportar",
+                                style = MaterialTheme.typography.labelMedium.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = LiliaOnPrimary,
+                                    fontSize = 12.sp
+                                )
+                            )
+                        }
+                    }
+                }
+            }
+
+            // 1.8. Google Health Connect Live Sync Card
+            item {
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .shadow(2.dp, shape = RoundedCornerShape(16.dp), ambientColor = LiliaPrimary.copy(alpha = 0.04f))
+                        .border(1.dp, LiliaOutlineVariant.copy(alpha = 0.2f), RoundedCornerShape(16.dp)),
+                    shape = RoundedCornerShape(16.dp),
+                    color = LiliaSurfaceContainerLowest
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Surface(
+                                    shape = CircleShape,
+                                    color = Color(0xFFE8F5E9),
+                                    modifier = Modifier.size(36.dp)
+                                ) {
+                                    Box(contentAlignment = Alignment.Center) {
+                                        Icon(
+                                            imageVector = Icons.Default.DirectionsRun,
+                                            contentDescription = "Health Connect",
+                                            tint = Color(0xFF2E7D32),
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Column {
+                                    Text(
+                                        text = "Google Health Connect",
+                                        style = MaterialTheme.typography.titleMedium.copy(
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 15.sp,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                    )
+                                    Text(
+                                        text = if (profile.isHealthConnectSynced) "Sincronizado: ${profile.healthConnectLastSync}" else "Não conectado",
+                                        style = MaterialTheme.typography.bodySmall.copy(
+                                            fontSize = 11.sp,
+                                            color = LiliaSecondary
+                                        )
+                                    )
+                                }
+                            }
+
+                            // Sync Button
+                            Surface(
+                                shape = PillShape,
+                                color = LiliaMintLight,
+                                modifier = Modifier
+                                    .clickable { viewModel.syncWithHealthConnect() }
+                                    .testTag("health_connect_sync_button")
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Sync,
+                                        contentDescription = "Sincronizar",
+                                        tint = LiliaPrimary,
+                                        modifier = Modifier.size(14.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = "Sincronizar",
+                                        style = MaterialTheme.typography.labelSmall.copy(
+                                            fontWeight = FontWeight.Bold,
+                                            color = LiliaPrimary,
+                                            fontSize = 11.sp
+                                        )
+                                    )
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            // Steps Metric
+                            Surface(
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(12.dp),
+                                color = LiliaBackground
+                            ) {
+                                Column(modifier = Modifier.padding(12.dp)) {
+                                    Text(
+                                        text = "Passos Hoje",
+                                        style = MaterialTheme.typography.labelSmall.copy(
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            fontSize = 11.sp
+                                        )
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = "${profile.dailySteps}",
+                                        style = MaterialTheme.typography.titleMedium.copy(
+                                            fontWeight = FontWeight.Bold,
+                                            color = LiliaPrimary,
+                                            fontSize = 18.sp
+                                        )
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    val progress = (profile.dailySteps.toFloat() / profile.stepsGoal.toFloat()).coerceIn(0f, 1f)
+                                    LinearProgressIndicator(
+                                        progress = { progress },
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(4.dp)
+                                            .clip(PillShape),
+                                        color = LiliaPrimary,
+                                        trackColor = LiliaOutlineVariant.copy(alpha = 0.3f),
+                                        strokeCap = StrokeCap.Round
+                                    )
+                                    Spacer(modifier = Modifier.height(2.dp))
+                                    Text(
+                                        text = "Meta: ${profile.stepsGoal}",
+                                        style = MaterialTheme.typography.bodySmall.copy(
+                                            fontSize = 9.5.sp,
+                                            color = MaterialTheme.colorScheme.tertiary
+                                        )
+                                    )
+                                }
+                            }
+
+                            // Calories Burned Metric
+                            Surface(
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(12.dp),
+                                color = LiliaBackground
+                            ) {
+                                Column(modifier = Modifier.padding(12.dp)) {
+                                    Text(
+                                        text = "Queima Ativa",
+                                        style = MaterialTheme.typography.labelSmall.copy(
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            fontSize = 11.sp
+                                        )
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = "${profile.activeCaloriesBurned} kcal",
+                                        style = MaterialTheme.typography.titleMedium.copy(
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color(0xFFE65100),
+                                            fontSize = 18.sp
+                                        )
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    LinearProgressIndicator(
+                                        progress = { (profile.activeCaloriesBurned / 500f).coerceIn(0f, 1f) },
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(4.dp)
+                                            .clip(PillShape),
+                                        color = Color(0xFFE65100),
+                                        trackColor = LiliaOutlineVariant.copy(alpha = 0.3f),
+                                        strokeCap = StrokeCap.Round
+                                    )
+                                    Spacer(modifier = Modifier.height(2.dp))
+                                    Text(
+                                        text = "Meta: 500 kcal",
+                                        style = MaterialTheme.typography.bodySmall.copy(
+                                            fontSize = 9.5.sp,
+                                            color = MaterialTheme.colorScheme.tertiary
+                                        )
+                                    )
+                                }
+                            }
                         }
                     }
                 }

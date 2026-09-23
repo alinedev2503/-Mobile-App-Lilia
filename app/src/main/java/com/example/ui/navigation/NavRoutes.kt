@@ -11,6 +11,7 @@ object NavRoutes {
     const val INSIGHTS = "insights"
     const val PROFILE = "profile"
     const val PREMIUM = "premium"
+    const val WEB3_REWARDS = "web3_rewards"
 }
 
 enum class BottomTab(val route: String, val title: String, val icon: String) {

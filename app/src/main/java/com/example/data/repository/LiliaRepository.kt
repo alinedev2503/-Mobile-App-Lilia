@@ -137,6 +137,25 @@ class LiliaRepository(
         return false
     }
 
+    suspend fun syncHealthConnect(steps: Int, caloriesBurned: Int, lastSync: String) {
+        val profile = db.userProfileDao().getUserProfileDirect() ?: UserProfileEntity()
+        db.userProfileDao().insertOrUpdateProfile(
+            profile.copy(
+                isHealthConnectSynced = true,
+                dailySteps = steps,
+                activeCaloriesBurned = caloriesBurned,
+                healthConnectLastSync = lastSync
+            )
+        )
+    }
+
+    suspend fun setHealthConnectSyncStatus(enabled: Boolean) {
+        val profile = db.userProfileDao().getUserProfileDirect() ?: UserProfileEntity()
+        db.userProfileDao().insertOrUpdateProfile(
+            profile.copy(isHealthConnectSynced = enabled)
+        )
+    }
+
     companion object {
         fun getInitialRecipes(): List<RecipeItem> = listOf(
             RecipeItem(
